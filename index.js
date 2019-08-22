@@ -14,15 +14,17 @@ var requested = 0;
  * URL que verifica se o projeto com aquele ID existe. Se não existir retorne um erro, caso contrário 
  * permita a requisição continuar normalmente; 
  * */
-function idExists(req, res, next){
+function projectExists(req, res, next){
    
    const { id } = req.params;
+
+   project = projects.find(p => p.id == id);
    
-   if(!projects[id]){
-      return res.send("O id informado não exite!");
+   if(!project){
+      return res.status(400).send("Project not found!");
    }
 
-   next();
+   return next();
 }
 
 
@@ -70,12 +72,14 @@ server.get('/projects', countRequest, (req, res) => {
 /**
  * PUT /projects/:id: A rota deve alterar apenas o título do projeto com o id presente nos parâmetros da rota;
  * */
-server.put('/projects/:id', countRequest, idExists, (req, res) => {
+server.put('/projects/:id', countRequest, projectExists, (req, res) => {
 
    const { id } = req.params;
    const { title } = req.body;
 
-   projects[id].title = title; 
+   index = projects.findIndex( p => p.id == id);
+
+   projects[index].title = title; 
 
    return res.send('Título atualizado com sucesso!');
 });
@@ -84,11 +88,13 @@ server.put('/projects/:id', countRequest, idExists, (req, res) => {
 /**
  * DELETE /projects/:id: A rota deve deletar o projeto com o id presente nos parâmetros da rota;
  * */
-server.delete('/projects/:id', countRequest, idExists, (req, res) => {
+server.delete('/projects/:id', countRequest, projectExists, (req, res) => {
 
    const { id } = req.params;
 
-   projects.splice(id);
+   index = projects.findIndex(p => p.id == id);
+
+   projects.splice(index, 1);
 
    return res.send("Projeto excluído com sucesso!");
 });
@@ -98,14 +104,16 @@ server.delete('/projects/:id', countRequest, idExists, (req, res) => {
  * POST /projects/:id/tasks: A rota deve receber um campo title e armazenar uma nova tarefa no array 
  * de tarefas de um projeto específico escolhido através do id presente nos parâmetros da rota;
  * */
-server.post('/projects/:id/tasks', countRequest, idExists, (req, res) => {
+server.post('/projects/:id/tasks', countRequest, projectExists, (req, res) => {
 
    const { id } = req.params;
    const { title } = req.body;
 
-   projects[id].tasks.push(title);
+   index = projects.findIndex(p => p.id == id);
 
-   return res.json(projects[id].tasks);
+   projects[index].tasks.push(title);
+
+   return res.json(projects[index].tasks);
 });
 
 server.listen(3333);
